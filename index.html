@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#00FF87">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scout ⚽">
+<link rel="manifest" href="manifest.json">
+<title>Scout Futebol AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#00FF87;--green2:#00c866;--dark:#080c10;--dark2:#0d1520;
+  --dark3:#131d2c;--dark4:#1a2438;--border:rgba(0,255,135,0.14);
+  --text:#e4edf8;--muted:#5d6f88;--red:#ff4757;--yellow:#ffd32a;
+  --blue:#3d8bff;--orange:#ff9f43;--purple:#a855f7;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;overscroll-behavior:none;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,135,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,135,.025) 1px,transparent 1px);background-size:36px 36px;pointer-events:none;z-index:0;}
+.screen{display:none;flex-direction:column;min-height:100vh;padding-top:calc(var(--safe-top) + 16px);padding-bottom:calc(var(--safe-bot) + 24px);padding-left:18px;padding-right:18px;position:relative;z-index:1;}
+.screen.active{display:flex}
+
+/* SETUP */
+#screenSetup{align-items:center;justify-content:center;text-align:center;gap:0;}
+.setup-logo{font-size:52px;margin-bottom:20px;animation:bounce 2s ease infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.setup-title{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:4px;color:var(--text);line-height:1;margin-bottom:6px;}
+.setup-title span{color:var(--green)}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.5;}
+.setup-card{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:24px 20px;width:100%;max-width:360px;margin-bottom:20px;}
+.field-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;text-align:left;}
+.api-input{background:var(--dark3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:14px 46px 14px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;width:100%;outline:none;transition:border-color .2s;}
+.api-input:focus{border-color:var(--green)}
+.api-input::placeholder{color:var(--muted);font-size:12px}
+.api-field-wrap{position:relative}
+.toggle-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px;}
+.btn-primary{width:100%;padding:15px;background:var(--green);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;cursor:pointer;transition:all .2s;margin-top:14px;}
+.btn-primary:active{transform:scale(.98);opacity:.9}
+.btn-primary:disabled{background:var(--dark4);color:var(--muted);cursor:not-allowed}
+.setup-hint{font-size:11px;color:var(--muted);line-height:1.7;max-width:300px;}
+.setup-hint a{color:var(--green);text-decoration:none}
+
+/* HOME */
+#screenHome{gap:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.topbar-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:3px;}
+.topbar-logo span{color:var(--green)}
+.topbar-actions{display:flex;gap:10px}
+.icon-btn{background:var(--dark2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;transition:border-color .2s;}
+.icon-btn:active{opacity:.7}
+.live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,255,135,.08);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
+.live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+.section-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.section-label::before{content:'//';opacity:.5;color:var(--green)}
+.input-card{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
+.teams-row{display:grid;grid-template-columns:1fr 36px 1fr;gap:10px;align-items:center;margin-bottom:12px;}
+.team-input{background:var(--dark3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:13px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;width:100%;outline:none;transition:border-color .2s;}
+.team-input:focus{border-color:rgba(0,255,135,.4)}
+.team-input::placeholder{color:var(--muted);font-weight:300;font-size:13px}
+.vs-pill{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--muted);text-align:center;letter-spacing:1px;}
+.comp-input{background:var(--dark3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;transition:border-color .2s;margin-bottom:10px;}
+.comp-input:focus{border-color:rgba(0,255,135,.3)}
+.comp-input::placeholder{color:var(--muted);font-weight:300}
+.context-ta{background:var(--dark3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;width:100%;outline:none;resize:none;height:62px;transition:border-color .2s;margin-bottom:10px;}
+.context-ta:focus{border-color:rgba(0,255,135,.3)}
+.context-ta::placeholder{color:var(--muted);font-weight:300;font-style:italic}
+
+/* ODDS INPUT */
+.odds-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.odds-wrap{display:flex;flex-direction:column;gap:4px;}
+.odds-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:center;}
+.odds-input{background:var(--dark3);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:10px 8px;color:var(--yellow);font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;width:100%;outline:none;text-align:center;transition:border-color .2s;}
+.odds-input:focus{border-color:rgba(255,211,42,.4)}
+.odds-input::placeholder{color:var(--muted);font-weight:300;font-size:12px}
+
+.btn-analyze{width:100%;padding:15px;background:var(--green);color:#000;border:none;border-radius:8px;font-family:'Bebas Neue',sans-serif;font-size:21px;letter-spacing:3px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(0,255,135,.2);}
+.btn-analyze:active{transform:scale(.98);box-shadow:none}
+.btn-analyze:disabled{background:var(--dark4);color:var(--muted);cursor:not-allowed;box-shadow:none}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;}
+.filter-bar::-webkit-scrollbar{display:none}
+.filter-chip{background:var(--dark2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.filter-chip.active{background:rgba(0,255,135,.1);border-color:var(--green);color:var(--green);}
+
+/* HISTORY */
+.history-wrap{margin-top:24px;flex:1}
+.history-empty{text-align:center;padding:32px 0;color:var(--muted);font-size:13px;}
+.history-empty .em{font-size:32px;display:block;margin-bottom:10px;opacity:.4}
+.history-item{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .15s,background .15s;}
+.history-item:active{background:var(--dark3);border-color:rgba(0,255,135,.3)}
+.history-item.fav{border-color:rgba(255,211,42,.3);}
+.hi-match{font-size:14px;font-weight:500;flex:1;min-width:0}
+.hi-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.hi-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.hi-rerun{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:.5px;cursor:pointer;}
+.hi-star{font-size:16px;cursor:pointer;opacity:.4;transition:opacity .2s;}
+.hi-star.on{opacity:1;}
+
+/* LOADING */
+#screenLoading{align-items:center;justify-content:center;text-align:center;gap:0;}
+.loader-field{width:80px;height:80px;border:2px solid var(--dark3);border-top-color:var(--green);border-radius:50%;animation:spin .9s linear infinite;margin:0 auto 28px;box-shadow:0 0 24px rgba(0,255,135,.15);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-match{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--text);margin-bottom:6px;}
+.loading-step{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);margin-bottom:6px;min-height:18px;}
+.loading-sub{font-size:12px;color:var(--muted)}
+.loading-steps-track{margin-top:32px;width:100%;max-width:260px;}
+.step-item{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:12px;color:var(--muted);opacity:.35;transition:opacity .4s,color .4s;}
+.step-item.done{opacity:1;color:var(--text)}
+.step-item.active{opacity:1;color:var(--green)}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--dark4);border:1px solid var(--border);flex-shrink:0;transition:background .3s;}
+.step-item.done .step-dot{background:var(--green2)}
+.step-item.active .step-dot{background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* RESULT */
+#screenResult{overflow-y:auto;gap:0}
+.result-topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.btn-back{background:var(--dark2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;}
+.btn-back:active{opacity:.7}
+.result-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;flex:1;}
+.btn-fav-result{background:var(--dark2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;transition:all .2s;}
+.btn-fav-result.on{background:rgba(255,211,42,.1);border-color:rgba(255,211,42,.4);}
+
+.match-hdr{background:var(--dark2);border:1px solid var(--border);border-radius:12px;padding:18px 16px;margin-bottom:14px;display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;}
+.mh-team{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;line-height:1.1;}
+.mh-team.home{color:var(--blue);text-align:left}
+.mh-team.away{color:var(--red);text-align:right}
+.mh-vs{text-align:center}
+.mh-vs-text{font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--muted);letter-spacing:2px;}
+.mh-comp{font-size:10px;color:var(--muted);text-align:center;margin-top:2px}
+
+/* CRITERIA 5-grid */
+.criteria-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}
+.criteria-row2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.crit-card{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:14px 12px;position:relative;overflow:hidden;}
+.crit-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.crit-card.btts::before{background:var(--green)}
+.crit-card.win::before{background:var(--blue)}
+.crit-card.over::before{background:var(--yellow)}
+.crit-card.corners::before{background:var(--orange)}
+.crit-card.cards::before{background:var(--red)}
+.crit-icon{font-size:18px;margin-bottom:6px;display:block}
+.crit-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;display:block;}
+.crit-val{font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;margin-bottom:3px;}
+.btts .crit-val{color:var(--green)}
+.win .crit-val{color:var(--blue);font-size:18px;margin-bottom:5px}
+.over .crit-val{color:var(--yellow)}
+.corners .crit-val{color:var(--orange)}
+.cards .crit-val{color:var(--red)}
+.crit-sub{font-size:10px;color:var(--muted)}
+.prob-bar{height:3px;background:var(--dark3);border-radius:2px;margin-top:8px;overflow:hidden}
+.prob-fill{height:100%;border-radius:2px;transition:width 1.2s ease}
+.btts .prob-fill{background:var(--green)}
+.win .prob-fill{background:var(--blue)}
+.over .prob-fill{background:var(--yellow)}
+.corners .prob-fill{background:var(--orange)}
+.cards .prob-fill{background:var(--red)}
+
+/* VALUE INDEX */
+.value-card{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;overflow:hidden;position:relative;}
+.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--purple);}
+.value-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.value-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:1.5px;}
+.value-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.value-item{background:var(--dark3);border-radius:8px;padding:10px 8px;text-align:center;}
+.value-item-lbl{font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.value-item-odd{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--yellow);margin-bottom:2px;}
+.value-item-fair{font-size:10px;color:var(--muted);}
+.value-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
+.vb-value{background:rgba(0,255,135,.15);color:var(--green);}
+.vb-fair{background:rgba(255,211,42,.1);color:var(--yellow);}
+.vb-avoid{background:rgba(255,71,87,.1);color:var(--red);}
+
+/* ANALYSIS BLOCKS */
+.ablock{background:var(--dark2);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;}
+.ablock-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:rgba(0,255,135,.02);}
+.ablock-icon{font-size:16px}
+.ablock-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;}
+.ablock-body{padding:14px 16px;font-size:13px;line-height:1.75;color:#bfcfe8;}
+.ablock-body strong{color:var(--text)}
+.hl{color:var(--green);font-weight:500}
+
+/* FORM INDICATORS */
+.form-row{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.form-dot{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.fd-w{background:rgba(0,255,135,.2);color:var(--green);}
+.fd-d{background:rgba(255,211,42,.15);color:var(--yellow);}
+.fd-l{background:rgba(255,71,87,.15);color:var(--red);}
+
+/* MOTIVATIONS */
+.motiv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.motiv-card{background:var(--dark2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.motiv-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.motiv-hdr.home{border-top:2px solid var(--blue)}
+.motiv-hdr.away{border-top:2px solid var(--red)}
+.motiv-name{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;}
+.motiv-hdr.home .motiv-name{color:var(--blue)}
+.motiv-hdr.away .motiv-name{color:var(--red)}
+.motiv-body{padding:12px 14px;font-size:12px;line-height:1.7;color:#bfcfe8;}
+
+/* VERDICT */
+.verdict-card{background:linear-gradient(135deg,rgba(0,255,135,.06),rgba(0,200,102,.02));border:1px solid rgba(0,255,135,.25);border-radius:12px;padding:20px 18px;margin-bottom:12px;}
+.verdict-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;}
+.verdict-txt{font-size:13px;line-height:1.8;color:var(--text)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:4px 8px;border-radius:4px;border:1px solid;}
+.tg{color:var(--green);border-color:rgba(0,255,135,.3);background:rgba(0,255,135,.05)}
+.tb{color:var(--blue);border-color:rgba(61,139,255,.3);background:rgba(61,139,255,.05)}
+.ty{color:var(--yellow);border-color:rgba(255,211,42,.3);background:rgba(255,211,42,.05)}
+.tr{color:var(--red);border-color:rgba(255,71,87,.3);background:rgba(255,71,87,.05)}
+.conf-row{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.conf-lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+.conf-dots{display:flex;gap:4px}
+.conf-dot{width:9px;height:9px;border-radius:50%;background:var(--dark3);border:1px solid var(--border);}
+.conf-dot.on{background:var(--green);border-color:var(--green);box-shadow:0 0 5px rgba(0,255,135,.5)}
+.conf-note{font-size:11px;color:var(--muted)}
+.disclaimer{background:rgba(255,71,87,.05);border:1px solid rgba(255,71,87,.15);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--muted);line-height:1.6;margin-top:4px;}
+.disclaimer strong{color:var(--red)}
+
+
+
+
+/* EV CARD */
+.ev-card{background:var(--dark2);border:1px solid rgba(168,85,247,.25);border-radius:10px;padding:16px;margin-bottom:12px;overflow:hidden;position:relative;}
+.ev-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--purple);}
+.ev-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.ev-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);text-transform:uppercase;letter-spacing:1.5px;}
+.ev-source{font-size:10px;color:var(--muted);margin-left:auto;}
+.ev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ev-item{background:var(--dark3);border-radius:8px;padding:10px 8px;text-align:center;}
+.ev-lbl{font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.ev-odd{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--yellow);margin-bottom:3px;}
+.ev-prob{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.ev-badge{display:inline-block;font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;}
+.ev-value{background:rgba(0,255,135,.15);color:var(--green);}
+.ev-highlight{background:linear-gradient(135deg,rgba(255,200,0,.2),rgba(255,150,0,.15));color:#FFD700;border:1px solid rgba(255,200,0,.4);box-shadow:0 0 10px rgba(255,200,0,.2);}
+.tip-card{background:linear-gradient(135deg,rgba(255,200,0,.06),rgba(255,150,0,.03));border:1px solid rgba(255,200,0,.3);border-radius:12px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
+.tip-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#FFD700,#FF9500);}
+.tip-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.tip-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:#FFD700;text-transform:uppercase;letter-spacing:1.5px;}
+.tip-market{font-family:'Bebas Neue',sans-serif;font-size:26px;color:#FFD700;letter-spacing:1px;margin-bottom:6px;}
+.tip-reason{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;}
+.tip-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.tip-conf{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.tip-ev{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:rgba(0,255,135,.1);color:var(--green);}
+.tip-disclaimer{font-size:10px;color:var(--muted);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.ev-fair{background:rgba(255,211,42,.1);color:var(--yellow);}
+.ev-avoid{background:rgba(255,71,87,.1);color:var(--red);}
+
+/* TOGGLE SWITCH */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--dark3);border-radius:8px;margin-bottom:10px;}
+.toggle-info{display:flex;flex-direction:column;gap:2px;}
+.toggle-label{font-size:13px;font-weight:600;color:var(--text);}
+.toggle-sub{font-size:10px;color:var(--muted);}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--dark4);border:1px solid var(--border);border-radius:12px;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:var(--muted);border-radius:50%;transition:.3s;}
+input:checked + .toggle-slider{background:rgba(255,159,67,.2);border-color:var(--orange);}
+input:checked + .toggle-slider:before{transform:translateX(20px);background:var(--orange);}
+
+/* COST BADGE */
+.cost-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:6px;padding:3px 8px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple);}
+.cost-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.btn-delete-result{background:rgba(255,71,87,.07);border:1px solid rgba(255,71,87,.2);border-radius:8px;padding:8px 14px;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-delete-result:active{opacity:.7}
+
+/* SETTINGS */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;display:none;align-items:flex-end;}
+.settings-overlay.open{display:flex}
+.settings-panel{background:var(--dark2);border:1px solid var(--border);border-radius:16px 16px 0 0;padding:24px 20px calc(var(--safe-bot) + 24px);width:100%;animation:slideUp .25s ease;}
+.settings-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:3px;margin-bottom:20px;}
+.settings-field{margin-bottom:16px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--safe-bot) + 20px);left:18px;right:18px;z-index:999;background:#1a0a0e;border:1px solid rgba(255,71,87,.4);border-radius:10px;padding:14px 16px;color:var(--red);font-size:13px;display:none;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);animation:slideUp .3s ease;}
+.toast.show{display:flex}
+.toast-close{margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;}
+
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── BACKTESTING ── */
+.bt-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.bt-stat{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:14px 10px;text-align:center;}
+.bt-stat-val{font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;margin-bottom:4px;}
+.bt-stat-lbl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.bt-market{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bt-market-name{font-size:12px;font-weight:600;flex:1;}
+.bt-bar-wrap{width:80px;}
+.bt-bar{height:5px;background:var(--dark3);border-radius:3px;overflow:hidden;}
+.bt-bar-fill{height:100%;border-radius:3px;background:var(--green);transition:width .8s;}
+.bt-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green);min-width:34px;text-align:right;}
+.bt-item{background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+.bt-item-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.bt-match{font-size:13px;font-weight:600;}
+.bt-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);}
+.bt-tip{font-size:12px;color:var(--yellow);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.bt-btns{display:flex;gap:6px;}
+.bt-btn{flex:1;padding:8px 4px;border-radius:7px;border:1px solid var(--border);background:var(--dark3);font-size:11px;font-weight:700;text-align:center;cursor:pointer;color:var(--muted);transition:all .2s;}
+.bt-btn:active{opacity:.7}
+.bt-btn.win{background:rgba(0,255,135,.15);border-color:var(--green);color:var(--green);}
+.bt-btn.loss{background:rgba(255,71,87,.1);border-color:var(--red);color:var(--red);}
+.bt-btn.void{background:rgba(255,211,42,.1);border-color:var(--yellow);color:var(--yellow);}
+.bt-insight{background:rgba(0,255,135,.05);border:1px solid rgba(0,255,135,.15);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.bt-insight-title{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.bt-insight-line{font-size:12px;color:#c8d8f0;margin-bottom:4px;line-height:1.5;}
+.bt-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="screen active" id="screenSetup">
+  <div class="setup-logo">⚽</div>
+  <div class="setup-title">SCOUT <span>FUTEBOL</span></div>
+  <div class="setup-sub">Análise preditiva com IA · v20b<br>Configure sua chave de API para começar</div>
+  <div class="setup-card">
+    <div class="field-label">Sua API Key da Anthropic</div>
+    <div class="api-field-wrap">
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="AIza..." autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="toggle-eye" onclick="toggleEye()" id="eyeBtn">👁️</button>
+    </div>
+    <button class="btn-primary" onclick="saveKey()">SALVAR E ENTRAR</button>
+  </div>
+  <div class="setup-hint">Crie sua chave gratuita em<br><a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create Key<br><br>A chave é salva <strong style="color:var(--text)">apenas no seu celular</strong>.</div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="screenHome">
+  <div class="topbar">
+    <div class="topbar-logo">SCOUT <span>⚽</span></div>
+    <div class="topbar-actions">
+      <div class="icon-btn" onclick="openBT()" title="Backtesting">📊</div>
+      <div class="icon-btn" onclick="openSettings()">⚙️</div>
+    </div>
+  </div>
+  <div class="live-badge"><span class="live-dot"></span>IA ONLINE · v20b</div>
+  <div class="section-label">Nova análise</div>
+  <div class="input-card">
+    <div class="teams-row">
+      <input class="team-input" id="homeTeam" placeholder="Casa" autocorrect="off">
+      <div class="vs-pill">VS</div>
+      <input class="team-input" id="awayTeam" placeholder="Visitante" autocorrect="off">
+    </div>
+    <input class="comp-input" id="competition" placeholder="Competição (ex: Brasileirão Série A)">
+    <input class="comp-input" id="matchTime" placeholder="Horário do jogo (ex: 19:00)" style="margin-bottom:10px;">
+    <textarea class="context-ta" id="extraCtx" placeholder="Contexto extra: rodada, desfalques conhecidos..."></textarea>
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-label">🚩🟨 Escanteios & Cartões</div>
+        <div class="toggle-sub">Análise extra · sem custo adicional</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleCornerCards">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="field-label" style="margin-bottom:8px">Odds do mercado (opcional — para índice de valor)</div>
+    <div class="odds-row">
+      <div class="odds-wrap">
+        <div class="odds-lbl">Casa</div>
+        <input class="odds-input" id="oddHome" type="number" step="0.01" min="1" placeholder="2.10">
+      </div>
+      <div class="odds-wrap">
+        <div class="odds-lbl">Empate</div>
+        <input class="odds-input" id="oddDraw" type="number" step="0.01" min="1" placeholder="3.20">
+      </div>
+      <div class="odds-wrap">
+        <div class="odds-lbl">Fora</div>
+        <input class="odds-input" id="oddAway" type="number" step="0.01" min="1" placeholder="3.50">
+      </div>
+    </div>
+    <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">⚡ ANALISAR PARTIDA</button>
+  </div>
+
+  <div class="history-wrap">
+    <div class="section-label">Análises anteriores</div>
+    <div class="filter-bar" id="filterBar">
+      <div class="filter-chip active" onclick="setFilter('all',this)">Todas</div>
+      <div class="filter-chip" onclick="setFilter('fav',this)">⭐ Favoritas</div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="screen" id="screenLoading">
+  <div class="loader-field"></div>
+  <div class="loading-match" id="loadingMatch">—</div>
+  <div class="loading-step" id="loadingStep">Iniciando...</div>
+  <div class="loading-sub">Aguarde, buscando dados reais</div>
+  <div class="loading-steps-track" id="stepsTrack">
+    <div class="step-item" data-step="0"><div class="step-dot"></div>Buscando dados das equipes</div>
+    <div class="step-item" data-step="1"><div class="step-dot"></div>Analisando forma recente</div>
+    <div class="step-item" data-step="2"><div class="step-dot"></div>Calculando probabilidades</div>
+    <div class="step-item" data-step="3"><div class="step-dot"></div>Verificando desfalques</div>
+    <div class="step-item" data-step="4"><div class="step-dot"></div>Gerando veredito final</div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="screenResult">
+  <div class="result-topbar">
+    <div class="btn-back" onclick="goHome()">←</div>
+    <div class="result-title">ANÁLISE COMPLETA</div>
+    <div class="btn-fav-result" id="favBtn" onclick="toggleFavResult()">☆</div>
+  </div>
+  <div id="resultBody"></div>
+</div>
+
+<!-- BACKTESTING SCREEN -->
+<div class="screen" id="screenBT">
+  <div class="result-topbar">
+    <div class="btn-back" onclick="showScreen('screenHome');renderHistory()">←</div>
+    <div class="result-title">📊 BACKTESTING</div>
+  </div>
+  <div id="btBody"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOutside(event)">
+  <div class="settings-panel">
+    <div class="settings-title">⚙️ Configurações</div>
+    <div class="settings-field">
+      <div class="field-label">API Key</div>
+      <div class="api-field-wrap">
+        <input class="api-input" id="settingsKey" type="password" placeholder="AIza..." autocomplete="off">
+        <button class="toggle-eye" onclick="toggleSettingsEye()">👁️</button>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="updateKey()">SALVAR CHAVE</button>
+    <button style="width:100%;padding:13px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;margin-top:10px;" onclick="closeSettings()">Cancelar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastMsg">Erro</span><button class="toast-close" onclick="hideToast()">×</button></div>
+
+<script>
+let apiKey = localStorage.getItem('scout_key') || '';
+let history = JSON.parse(localStorage.getItem('scout_history') || '[]');
+let stepTimer = null, currentStep = 0, currentFilter = 'all', currentResultIdx = -1;
+
+if (apiKey) showScreen('screenHome');
+renderHistory();
+buildFilterChips();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() { showScreen('screenHome'); renderHistory(); }
+
+// API KEY
+function saveKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val.startsWith('sk-ant-')) return showToast('Chave inválida. Deve começar com sk-ant-');
+  apiKey = val; localStorage.setItem('scout_key', apiKey);
+  showScreen('screenHome'); renderHistory(); buildFilterChips();
+}
+function updateKey() {
+  const val = document.getElementById('settingsKey').value.trim();
+  if (!val.startsWith('sk-ant-')) return showToast('Chave inválida');
+  apiKey = val; localStorage.setItem('scout_key', apiKey);
+  closeSettings(); showToast('✅ Chave atualizada!');
+}
+function toggleEye() { const i = document.getElementById('apiKeyInput'); i.type = i.type==='password'?'text':'password'; }
+function toggleSettingsEye() { const i = document.getElementById('settingsKey'); i.type = i.type==='password'?'text':'password'; }
+
+// SETTINGS
+function openSettings() { document.getElementById('settingsKey').value = apiKey; document.getElementById('settingsOverlay').classList.add('open'); }
+function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
+function closeSettingsOutside(e) { if (e.target===document.getElementById('settingsOverlay')) closeSettings(); }
+
+// TOAST
+function showToast(msg, dur=3500) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show'); setTimeout(() => t.classList.remove('show'), dur);
+}
+function hideToast() { document.getElementById('toast').classList.remove('show'); }
+
+// FILTER
+function buildFilterChips() {
+  const bar = document.getElementById('filterBar');
+  const comps = [...new Set(history.map(h=>h.competition).filter(Boolean))];
+  // remove old comp chips
+  [...bar.querySelectorAll('.comp-chip')].forEach(c=>c.remove());
+  comps.slice(0,5).forEach(c => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip comp-chip';
+    chip.textContent = c;
+    chip.onclick = () => setFilter('comp:'+c, chip);
+    bar.appendChild(chip);
+  });
+}
+function setFilter(val, el) {
+  currentFilter = val;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+// HISTORY
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  let items = [...history].reverse();
+
+  if (currentFilter === 'fav') items = items.filter(i=>i.fav);
+  else if (currentFilter.startsWith('comp:')) {
+    const comp = currentFilter.replace('comp:','');
+    items = items.filter(i=>i.competition===comp);
+  }
+
+  if (!items.length) {
+    list.innerHTML = `<div class="history-empty"><span class="em">${currentFilter==='fav'?'⭐':'📋'}</span>${currentFilter==='fav'?'Nenhum favorito ainda.<br>Toque ☆ numa análise para favoritar!':'Nenhuma análise ainda.<br>Insira uma partida acima!'}</div>`;
+    return;
+  }
+
+  list.innerHTML = items.map((item) => {
+    const idx = history.length - 1 - [...history].reverse().indexOf(item);
+    const realIdx = history.indexOf(item);
+    const hasSaved = !!item.result;
+    return `
+    <div class="history-item ${item.fav?'fav':''}">
+      <div style="flex:1;min-width:0">
+        <div class="hi-match">${item.home} <span style="color:var(--muted)">×</span> ${item.away}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${item.competition||''}</div>
+      </div>
+      <div class="hi-meta">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="hi-star ${item.fav?'on':''}" onclick="toggleFav(${realIdx})">⭐</span>
+          <div class="hi-date">
+          ${item.matchTime?'⏰ '+item.matchTime+' · ':''}${item.date}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap;">
+          ${item.confidence?'<span style="font-size:10px;color:var(--green)">⭐'.repeat(item.confidence)+'</span>':''}
+          ${item.cost?'<span style="font-family:JetBrains Mono,monospace;font-size:10px;color:var(--purple)">💰'+item.cost+'</span>':''}
+        </div>
+        </div>
+        ${hasSaved?`<div class="hi-rerun" style="color:var(--green)" onclick="viewSaved(${realIdx})">📄 ver análise</div>`:''}
+        <div class="hi-rerun" style="color:var(--red)" onclick="deleteAnalysis(${realIdx})">🗑 excluir</div>
+        <div class="hi-rerun" onclick="rerun('${esc(item.home)}','${esc(item.away)}','${esc(item.competition)}')">↻ reanalisar</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleFav(idx) {
+  history[idx].fav = !history[idx].fav;
+  localStorage.setItem('scout_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function toggleFavResult() {
+  if (currentResultIdx < 0) return;
+  history[currentResultIdx].fav = !history[currentResultIdx].fav;
+  localStorage.setItem('scout_history', JSON.stringify(history));
+  const btn = document.getElementById('favBtn');
+  btn.textContent = history[currentResultIdx].fav ? '⭐' : '☆';
+  btn.classList.toggle('on', history[currentResultIdx].fav);
+  showToast(history[currentResultIdx].fav ? '⭐ Adicionado aos favoritos!' : 'Removido dos favoritos');
+}
+
+function deleteAnalysis(idx) {
+  if (!confirm('Excluir esta análise do histórico?')) return;
+  history.splice(idx, 1);
+  localStorage.setItem('scout_history', JSON.stringify(history));
+  renderHistory();
+  buildFilterChips();
+  showToast('🗑 Análise excluída');
+}
+
+function deleteCurrentResult() {
+  if (currentResultIdx < 0) return;
+  if (!confirm('Excluir esta análise do histórico?')) return;
+  history.splice(currentResultIdx, 1);
+  localStorage.setItem('scout_history', JSON.stringify(history));
+  currentResultIdx = -1;
+  buildFilterChips();
+  goHome();
+  showToast('🗑 Análise excluída');
+}
+
+function viewSaved(idx) {
+  const item = history[idx];
+  if (!item||!item.result) return showToast('Análise não encontrada');
+  currentResultIdx = idx;
+  renderResult(item.result, idx);
+  showScreen('screenResult');
+}
+
+function esc(s) { return (s||'').replace(/'/g,"\\'"); }
+function rerun(home,away,comp) {
+  document.getElementById('homeTeam').value=home;
+  document.getElementById('awayTeam').value=away;
+  document.getElementById('competition').value=comp;
+  document.getElementById('extraCtx').value='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// LOADING STEPS
+const STEPS=['Buscando dados das equipes...','Analisando forma recente...','Calculando probabilidades...','Verificando desfalques e escanteios...','Gerando veredito final...'];
+function startSteps() { currentStep=0; updateStep(0); stepTimer=setInterval(()=>{ currentStep++; if(currentStep<STEPS.length) updateStep(currentStep); },2200); }
+function updateStep(idx) {
+  document.getElementById('loadingStep').textContent=STEPS[idx]||'Finalizando...';
+  document.querySelectorAll('.step-item').forEach((el,i)=>{ el.classList.remove('active','done'); if(i<idx) el.classList.add('done'); if(i===idx) el.classList.add('active'); });
+}
+function stopSteps() { clearInterval(stepTimer); document.querySelectorAll('.step-item').forEach(el=>{el.classList.remove('active');el.classList.add('done');}); }
+
+// SYSTEM PROMPT
+const SYSTEM = `Analista de futebol preditivo de elite. Responda APENAS JSON puro sem markdown.
+
+MANDO: Primeiro time = MANDANTE. Segundo = VISITANTE. NUNCA inverta.
+
+PESQUISA (faça buscas reais antes de responder):
+- Horário oficial da partida
+- Formato: pontos corridos, mata-mata, final, ida/volta
+- Últimos 5 jogos MANDANTE EM CASA com placares reais
+- Últimos 5 jogos VISITANTE FORA com placares reais  
+- Últimos 3 H2H diretos com placares e local — PESO MAIOR que forma recente
+- Posição tabela, pontos, objetivo de cada time
+- Desfalques confirmados especialmente atacantes/artilheiros
+- Desgaste: jogou decisivo há menos de 4 dias?
+- Odds Bet365 via OddsPortal ou Oddschecker
+
+REGRAS DE CONFIANÇA (seja CONSERVADOR):
+- Máximo 3/5 para ligas fora do top 20 mundial (ligas africanas, bálticas, finlandesas pequenas etc)
+- Máximo 2/5 para combinações de mercado (ex: BTTS+Over 2.5)
+- Over 2.5 combinado com BTTS: penalizar -1 estrela automaticamente
+- 4/5 apenas quando TODOS os dados apontam na mesma direção SEM contradição
+- 5/5 apenas em condições excepcionais com dados abundantes e consistentes
+- Se dados da liga forem escassos ou contraditórios: eligible=false
+
+FATOR CASA: máximo +8% vantagem para mandantes. Não supervalorizar.
+H2H: peso maior que forma recente. 2 vitórias visitante nos últimos 3 H2H = ajustar prob visitante +10%.
+
+DESFALQUES: artilheiro/centroavante ausente = -12% BTTS, -15% Over 2.5.
+DESGASTE: jogo decisivo há menos de 4 dias = -12% Over 2.5, -10% BTTS.
+
+FORMATO — use APENAS números. Sem textos longos. Cada bullet = 1 dado numérico.
+home_motivation e away_motivation: 1 linha cada com: posição+pontos+objetivo+sequência recente.
+
+MERCADOS EXTRAS (calcule com dados já coletados, sem nova busca):
+Over 0.5 HT, Over 1.5 HT, Over 3.5 FT, Dupla Chance X2, Mandante Marca HT.
+
+EV: (prob*odd)-1. highlight=true apenas se EV>5%.
+
+JSON:
+{
+  "home":"Nome","away":"Nome","competition":"Liga","match_time":"HH:MM (Brasília) ou Não encontrado",
+  "eligible":true,"ineligible_reason":"Motivo se false",
+  "match_context":"1 linha: formato + o que cada time precisa",
+  "context_impact":"1 linha: como contexto afeta probabilidades",
+  "btts":{"prob":65,"trend":"Alta","confidence":3,"reason":["• 80% BTTS últimos 10 mandante","• Visitante marcou em 7/8 fora","• H2H: 3/3 com BTTS"]},
+  "winner":{"favorite":"Nome ou Empate","prob_home":45,"prob_draw":28,"prob_away":27,"confidence":3,"reason":["• Mandante: 4V-1D em 5 casa (80%)","• H2H: Visitante 2V nos últimos 3","• Odds: 42% implícito vs 45% estimado"]},
+  "over25":{"prob":58,"trend":"Média","confidence":2,"reason":["• Média 2.1 gols mandante casa","• Visitante: 1.4 gols fora","• H2H média: 1.8 gols"]},
+  "odds_found":true,
+  "odds":{"home":2.10,"draw":3.20,"away":3.50,"source":"Bet365 via OddsPortal"},
+  "ev":{"home":{"value":0.08,"label":"VALUE","highlight":true},"draw":{"value":-0.12,"label":"EVITAR","highlight":false},"away":{"value":0.06,"label":"VALUE","highlight":false}},
+  "home_form":["W","W","D","L","W"],
+  "away_form":["L","W","W","D","L"],
+  "home_motivation":"6º · 17pts · busca G-4 · 4V-1D últimos 5 em casa",
+  "away_motivation":"9º · 13pts · H2H: 2V nos últimos 3 contra mandante · 3V-1D-1L fora",
+  "absences":["• Mandante: sem desfalques críticos","• Visitante: atacante titular lesionado (-12% BTTS aplicado)","• Desgaste: nenhum nas últimas 4 dias"],
+  "tip":{"market":"BTTS Sim","reasoning":"80% BTTS mandante + 87% visitante + H2H 3/3 = consistência máxima","confidence":3,"ev_note":"EV +8%"},
+  "market_summary":[
+    {"label":"Ambas Marcam (FT)","value":"65%","trend":"Alta","confidence":3},
+    {"label":"Over 0.5 HT","value":"78%","trend":"Muito Alta","confidence":3},
+    {"label":"Over 1.5 HT","value":"45%","trend":"Média","confidence":2},
+    {"label":"Over 2.5 FT","value":"58%","trend":"Média","confidence":2},
+    {"label":"Over 3.5 FT","value":"32%","trend":"Baixa","confidence":1},
+    {"label":"Dupla Chance X2","value":"55%","trend":"Média","confidence":2},
+    {"label":"Mandante Marca HT","value":"55%","trend":"Média","confidence":2},
+    {"label":"Palpite Principal","value":"BTTS Sim","trend":"Principal","confidence":3}
+  ],
+  "verdict":["• H2H decisivo: visitante 2V nos últimos 3","• Mandante 80% casa mas zaga sofre 1.8 gols/jogo","• Contexto sem pressão favorece jogo aberto"],
+  "confidence":3,
+  "tags":["BTTS","Over 2.5","Casa Leve Fav"],
+  "key_stats":"H2H: 2V visitante últimos 3 • Mandante casa: 80% • Visitante fora: 62% BTTS"
+}`;
+
+// ANALYSIS
+async function startAnalysis() {
+  const home = document.getElementById('homeTeam').value.trim();
+  const away = document.getElementById('awayTeam').value.trim();
+  const comp = document.getElementById('competition').value.trim();
+  const ctx  = document.getElementById('extraCtx').value.trim();
+  const oddHome = parseFloat(document.getElementById('oddHome').value)||null;
+  const oddDraw = parseFloat(document.getElementById('oddDraw').value)||null;
+  const oddAway = parseFloat(document.getElementById('oddAway').value)||null;
+
+  if (!home||!away) return showToast('Preencha os dois times!');
+  if (!apiKey) return showToast('Configure sua API key primeiro');
+
+  document.getElementById('loadingMatch').textContent = `${home} × ${away}`;
+  showScreen('screenLoading'); startSteps();
+
+  const oddsInfo = oddHome ? `\nOdds do mercado: Casa ${oddHome} | Empate ${oddDraw} | Fora ${oddAway}` : '';
+  const wantCornerCards = document.getElementById('toggleCornerCards').checked;
+  const cornerNote = wantCornerCards
+    ? '\nINCLUIR: análise detalhada de escanteios e cartões com médias reais de cada time.'
+    : '\nNÃO incluir análise de escanteios e cartões — omitir os campos corners e cards do JSON.';
+  const matchTime = document.getElementById('matchTime').value.trim();
+  const userMsg = `Partida: ${home} x ${away}\nCompetição: ${comp||'Não informada'}\nHorário: ${matchTime||'Não informado'}\nContexto: ${ctx||'Nenhum'}${oddsInfo}\nData: ${new Date().toLocaleDateString('pt-BR')}${cornerNote}`;
+
+  try {
+    // Gemini via OpenAI-compat endpoint (v1beta)
+    let fullText = '', totalInputTokens = 0, totalOutputTokens = 0;
+
+
+    // Anthropic API com web search
+    const messages = [{role:'user', content: userMsg}];
+    let iters = 0;
+
+    while (iters < 12) {
+      iters++;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5',
+          max_tokens: 4000,
+          tools: [{type: 'web_search_20250305', name: 'web_search'}],
+          system: SYSTEM,
+          messages
+        })
+      });
+
+      if (!res.ok) {
+        const e = await res.json();
+        throw new Error(e.error?.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data.usage) {
+        totalInputTokens  += data.usage.input_tokens || 0;
+        totalOutputTokens += data.usage.output_tokens || 0;
+      }
+
+      const texts = data.content.filter(b => b.type === 'text');
+      if (texts.length) fullText = texts.map(b => b.text).join('\n');
+
+      if (data.stop_reason === 'end_turn') break;
+
+      const toolUses = data.content.filter(b => b.type === 'tool_use');
+      if (!toolUses.length) break;
+
+      messages.push({role: 'assistant', content: data.content});
+      messages.push({role: 'user', content: toolUses.map(tu => ({
+        type: 'tool_result', tool_use_id: tu.id, content: []
+      }))});
+    }
+
+    // Cost calculation — claude-haiku-4-5
+    const inputCost  = totalInputTokens  * 0.0000008;
+    const outputCost = totalOutputTokens * 0.000004;
+    const totalCost  = inputCost + outputCost;
+    const costStr = 'US$ ' + totalCost.toFixed(3);
+
+    stopSteps();
+    let result;
+    try {
+      // Step 1: clean markdown
+      let jsonStr = fullText
+        .replace(/```json\s*/gi,'')
+        .replace(/```\s*/g,'')
+        .trim();
+
+      // Step 2: extract largest JSON object
+      const greedyMatch = jsonStr.match(/\{[\s\S]*\}/);
+      let bestMatch = greedyMatch ? greedyMatch[0] : jsonStr;
+
+      // Step 3: aggressive JSON fixes
+      bestMatch = bestMatch
+        .replace(/,\s*([}\]])/g, '$1')        // trailing commas
+        .replace(/([{,]\s*)(\w+)\s*:/g, '$1"$2":') // unquoted keys
+        .replace(/:\s*'([^']*)'/g, ': "$1"')   // single quotes to double
+        .replace(/[\u0000-\u001F]/g, ' ')      // control chars
+        .replace(/\\'/g, "'");                  // escaped single quotes
+
+      // Step 4: try parse, if fail try to extract partial
+      try {
+        result = JSON.parse(bestMatch);
+      } catch(e1) {
+        // Try to fix truncated JSON by closing open brackets
+        let fixed = bestMatch;
+        const opens = (fixed.match(/\{/g)||[]).length - (fixed.match(/\}/g)||[]).length;
+        const openArr = (fixed.match(/\[/g)||[]).length - (fixed.match(/\]/g)||[]).length;
+        for(let i=0;i<openArr;i++) fixed += ']';
+        for(let i=0;i<opens;i++) fixed += '}';
+        try {
+          result = JSON.parse(fixed);
+        } catch(e2) {
+          throw new Error('JSON inválido mesmo após correções. Tente novamente.');
+        }
+      }
+
+      // Step 5: ensure required fields with defaults
+      if (!result.home) result.home = document.getElementById('homeTeam').value;
+      if (!result.away) result.away = document.getElementById('awayTeam').value;
+      if (!result.eligible) result.eligible = true;
+      if (!result.btts) result.btts = {prob:50,trend:'Média',confidence:1,reason:['• Dados insuficientes']};
+      if (!result.winner) result.winner = {favorite:'Indefinido',prob_home:33,prob_draw:34,prob_away:33,confidence:1,reason:['• Dados insuficientes']};
+      if (!result.over25) result.over25 = {prob:50,trend:'Média',confidence:1,reason:['• Dados insuficientes']};
+      if (!result.verdict) result.verdict = ['• Análise incompleta'];
+      if (!result.confidence) result.confidence = 1;
+      if (!result.tags) result.tags = [];
+      if (!result.market_summary) result.market_summary = [];
+
+      // Step 6: normalize string fields to arrays
+      ['btts','winner','over25'].forEach(k => {
+        if (result[k] && typeof result[k].reason === 'string') {
+          result[k].reason = [result[k].reason];
+        }
+      });
+      ['home_motivation','away_motivation','absences','verdict'].forEach(k => {
+        if (result[k] && typeof result[k] === 'string') {
+          result[k] = [result[k]];
+        }
+      });
+
+    } catch(e) {
+      throw new Error('Erro ao processar: ' + e.message.substring(0,80) + '. Tente novamente.');
+    }
+
+    // inject odds for value calculation
+    if (oddHome) result._odds = {home:oddHome,draw:oddDraw,away:oddAway};
+
+    result._cost = costStr;
+    const autoTime = result.match_time && result.match_time !== 'Não encontrado' ? result.match_time : matchTime;
+    history.push({home:result.home||home,away:result.away||away,competition:result.competition||comp,date:new Date().toLocaleDateString('pt-BR'),result,fav:false,cost:costStr,matchTime:autoTime,confidence:result.confidence||0});
+    if (history.length>50) history=history.slice(-50);
+    localStorage.setItem('scout_history',JSON.stringify(history));
+    buildFilterChips();
+
+    currentResultIdx = history.length - 1;
+    renderResult(result, currentResultIdx);
+    showScreen('screenResult');
+
+  } catch(e) { stopSteps(); goHome(); showToast('Erro: '+e.message,5000); }
+}
+
+// VALUE INDEX CALC
+function calcValue(prob, odd) {
+  if (!odd||!prob) return null;
+  const fairOdd = 100/prob;
+  const edge = ((odd/fairOdd)-1)*100;
+  return {edge: edge.toFixed(1), fairOdd: fairOdd.toFixed(2), label: edge>5?'VALUE':edge>-5?'JUSTO':'EVITAR', cls: edge>5?'vb-value':edge>-5?'vb-fair':'vb-avoid'};
+}
+
+// RENDER RESULT
+function starsHtml(n) {
+  const filled = Math.round(Math.min(5, Math.max(1, n||1)));
+  return '⭐'.repeat(filled) + '<span style="opacity:.25">⭐</span>'.repeat(5-filled);
+}
+
+function renderBullets(v) {
+  if (!v) return '';
+  if (Array.isArray(v)) return v.map(b=>`<div style="margin-bottom:4px">${b}</div>`).join('');
+  return v;
+}
+
+function renderResult(r, idx) {
+  currentResultIdx = idx >= 0 ? idx : currentResultIdx;
+  const isFav = currentResultIdx>=0 && history[currentResultIdx]?.fav;
+  const favBtn = document.getElementById('favBtn');
+  if (favBtn) { favBtn.textContent = isFav?'⭐':'☆'; favBtn.classList.toggle('on',isFav); }
+
+  // Check eligibility first
+  if (r.eligible === false) {
+    document.getElementById('resultBody').innerHTML = `
+      <div class="ineligible-card">
+        <div class="ineligible-icon">🚫</div>
+        <div class="ineligible-title">PARTIDA INELEGÍVEL</div>
+        <div class="ineligible-reason">${r.ineligible_reason || 'Dados insuficientes ou contraditórios para uma análise confiável.'}<br><br>
+        <strong style="color:var(--text)">Recomendação:</strong> Evitar entrada nesta partida.</div>
+      </div>
+      <div class="disclaimer"><strong>⚠️ Aviso:</strong> Análise gerada por IA. Não é recomendação de apostas.</div>`;
+    return;
+  }
+
+  const favProb = r.winner.favorite===r.home?r.winner.prob_home:r.winner.favorite==='Empate'?r.winner.prob_draw:r.winner.prob_away;
+  const dots = Array.from({length:5},(_,i)=>`<div class="conf-dot ${i<r.confidence?'on':''}"></div>`).join('');
+  const confLabel = ['','Muito baixa','Baixa','Média','Alta','Muito alta'][r.confidence]||'';
+  const tagColors = ['tg','tb','ty','tr'];
+  const tags = (r.tags||[]).map((t,i)=>`<span class="tag ${tagColors[i%4]}">${t}</span>`).join('');
+  const stats = (r.key_stats||'').split('•').map(s=>s.trim()).filter(Boolean).map(s=>`<span class="hl">▸</span> ${s}`).join('<br>');
+
+  // Form dots
+  const formDot = (v) => {
+    if (v==='W') return '<div class="form-dot fd-w">V</div>';
+    if (v==='D') return '<div class="form-dot fd-d">E</div>';
+    return '<div class="form-dot fd-l">D</div>';
+  };
+  const homeForm = (r.home_form||[]).map(formDot).join('');
+  const awayForm = (r.away_form||[]).map(formDot).join('');
+
+  // Value index
+  let valueHTML = '';
+  if (r._odds) {
+    const vh = calcValue(r.winner.prob_home, r._odds.home);
+    const vd = calcValue(r.winner.prob_draw, r._odds.draw);
+    const va = calcValue(r.winner.prob_away, r._odds.away);
+    valueHTML = `
+    <div class="value-card">
+      <div class="value-header"><span style="font-size:16px">💎</span><span class="value-title">Índice de Valor</span></div>
+      <div class="value-grid">
+        <div class="value-item">
+          <div class="value-item-lbl">Casa</div>
+          <div class="value-item-odd">${r._odds.home}</div>
+          <div class="value-item-fair">Justo: ${vh.fairOdd}</div>
+          <div class="value-badge ${vh.cls}">${vh.label} ${vh.edge>0?'+':''}${vh.edge}%</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-lbl">Empate</div>
+          <div class="value-item-odd">${r._odds.draw}</div>
+          <div class="value-item-fair">Justo: ${vd.fairOdd}</div>
+          <div class="value-badge ${vd.cls}">${vd.label} ${vd.edge>0?'+':''}${vd.edge}%</div>
+        </div>
+        <div class="value-item">
+          <div class="value-item-lbl">Fora</div>
+          <div class="value-item-odd">${r._odds.away}</div>
+          <div class="value-item-fair">Justo: ${va.fairOdd}</div>
+          <div class="value-badge ${va.cls}">${va.label} ${va.edge>0?'+':''}${va.edge}%</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('resultBody').innerHTML = `
+    ${r.match_time && r.match_time !== 'Não encontrado' ? `<div style="text-align:center;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--green)">⏰ ${r.match_time}</div>` : ''}
+    <div class="match-hdr">
+      <div class="mh-team home">${r.home}</div>
+      <div class="mh-vs"><div class="mh-vs-text">VS</div><div class="mh-comp">${r.competition||''}</div></div>
+      <div class="mh-team away">${r.away}</div>
+    </div>
+
+    <div class="criteria-row">
+      <div class="crit-card btts">
+        <span class="crit-icon">⚽</span><span class="crit-lbl">Ambas Marcam</span>
+        <div class="crit-val">${r.btts.prob}%</div><div class="crit-sub">${r.btts.trend} · ${starsHtml(r.btts.confidence)}</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${r.btts.prob}%"></div></div>
+      </div>
+      <div class="crit-card win">
+        <span class="crit-icon">🏆</span><span class="crit-lbl">Vencedor</span>
+        <div class="crit-val">${r.winner.favorite}</div>
+        <div class="crit-sub">${r.winner.prob_home}%·${r.winner.prob_draw}%·${r.winner.prob_away}% · ${starsHtml(r.winner.confidence)}</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${favProb}%"></div></div>
+      </div>
+      <div class="crit-card over">
+        <span class="crit-icon">🔢</span><span class="crit-lbl">Over 2.5</span>
+        <div class="crit-val">${r.over25.prob}%</div><div class="crit-sub">${r.over25.trend} · ${starsHtml(r.over25.confidence)}</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${r.over25.prob}%"></div></div>
+      </div>
+    </div>
+
+    <div class="criteria-row2">
+      <div class="crit-card corners">
+        <span class="crit-icon">🚩</span><span class="crit-lbl">Escanteios Over</span>
+        <div class="crit-val">${r.corners?.over_prob||'—'}%</div>
+        <div class="crit-sub">${r.corners?.avg_home||'?'} avg casa · ${r.corners?.avg_away||'?'} avg fora</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${r.corners?.over_prob||0}%"></div></div>
+      </div>
+      <div class="crit-card cards">
+        <span class="crit-icon">🟨</span><span class="crit-lbl">Cartões Over</span>
+        <div class="crit-val">${r.cards?.over_prob||'—'}%</div>
+        <div class="crit-sub">${r.cards?.avg_home||'?'} avg casa · ${r.cards?.avg_away||'?'} avg fora</div>
+        <div class="prob-bar"><div class="prob-fill" style="width:${r.cards?.over_prob||0}%"></div></div>
+      </div>
+    </div>
+
+    ${valueHTML}
+
+    ${r.odds_found && r.odds && r.ev ? `<div class="ev-card">
+      <div class="ev-header">
+        <span style="font-size:16px">💎</span>
+        <span class="ev-title">Odds + Expected Value</span>
+        <span class="ev-source">${r.odds.source||'Agregador'}</span>
+      </div>
+      <div class="ev-grid">
+        <div class="ev-item">
+          <div class="ev-lbl">Casa</div>
+          <div class="ev-odd">${r.odds.home}</div>
+          <div class="ev-prob">${r.winner.prob_home}% prob</div>
+          <div class="ev-badge ${r.ev.home?.highlight?'ev-highlight':r.ev.home?.label==='VALUE'?'ev-value':r.ev.home?.label==='EVITAR'?'ev-avoid':'ev-fair'}">${r.ev.home?.label||'—'} ${r.ev.home?.value>0?'+':''}${((r.ev.home?.value||0)*100).toFixed(0)}%</div>
+        </div>
+        <div class="ev-item">
+          <div class="ev-lbl">Empate</div>
+          <div class="ev-odd">${r.odds.draw}</div>
+          <div class="ev-prob">${r.winner.prob_draw}% prob</div>
+          <div class="ev-badge ${r.ev.draw?.highlight?'ev-highlight':r.ev.draw?.label==='VALUE'?'ev-value':r.ev.draw?.label==='EVITAR'?'ev-avoid':'ev-fair'}">${r.ev.draw?.label||'—'} ${r.ev.draw?.value>0?'+':''}${((r.ev.draw?.value||0)*100).toFixed(0)}%</div>
+        </div>
+        <div class="ev-item">
+          <div class="ev-lbl">Fora</div>
+          <div class="ev-odd">${r.odds.away}</div>
+          <div class="ev-prob">${r.winner.prob_away}% prob</div>
+          <div class="ev-badge ${r.ev.away?.highlight?'ev-highlight':r.ev.away?.label==='VALUE'?'ev-value':r.ev.away?.label==='EVITAR'?'ev-avoid':'ev-fair'}">${r.ev.away?.label||'—'} ${r.ev.away?.value>0?'+':''}${((r.ev.away?.value||0)*100).toFixed(0)}%</div>
+        </div>
+      </div>
+    </div>` : ''}
+    ${r.match_context?`<div class="ablock" style="border-color:rgba(255,159,67,.3)"><div class="ablock-hdr" style="background:rgba(255,159,67,.06)"><span class="ablock-icon">🏟️</span><span class="ablock-title" style="color:var(--orange)">Contexto Competitivo</span></div><div class="ablock-body"><div style="margin-bottom:8px"><strong>${r.match_context}</strong></div>${r.context_impact?`<div style="color:var(--orange);font-size:12px">⚠️ ${r.context_impact}</div>`:''}</div></div>`:''}
+    ${stats?`<div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">📊</span><span class="ablock-title">Estatísticas-chave</span></div><div class="ablock-body">${stats}</div></div>`:''}
+
+    <div class="motiv-grid">
+      <div class="motiv-card">
+        <div class="motiv-hdr home"><span>🏠</span><div class="motiv-name">${r.home}</div></div>
+        <div class="motiv-body">
+          <div class="form-row">${homeForm}</div>
+          <div style="margin-top:10px">${r.home_motivation}</div>
+        </div>
+      </div>
+      <div class="motiv-card">
+        <div class="motiv-hdr away"><span>✈️</span><div class="motiv-name">${r.away}</div></div>
+        <div class="motiv-body">
+          <div class="form-row">${awayForm}</div>
+          <div style="margin-top:10px">${r.away_motivation}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">⚽</span><span class="ablock-title">Análise BTTS</span></div><div class="ablock-body">${renderBullets(r.btts.reason)}</div></div>
+    <div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">🏆</span><span class="ablock-title">Análise de Resultado</span></div><div class="ablock-body">${renderBullets(r.winner.reason)}</div></div>
+    <div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">🔢</span><span class="ablock-title">Análise Over 2.5</span></div><div class="ablock-body">${renderBullets(r.over25.reason)}</div></div>
+    ${r.corners?.reason?`<div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">🚩</span><span class="ablock-title">Análise Escanteios</span></div><div class="ablock-body">${r.corners.reason}</div></div>`:''}
+    ${r.cards?.reason?`<div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">🟨</span><span class="ablock-title">Análise Cartões</span></div><div class="ablock-body">${r.cards.reason}</div></div>`:''}
+    ${r.absences?`<div class="ablock"><div class="ablock-hdr"><span class="ablock-icon">🚑</span><span class="ablock-title">Desfalques & Baixas</span></div><div class="ablock-body">${renderBullets(r.absences)}</div></div>`:''}
+
+    <div class="verdict-card">
+      <div class="verdict-lbl">// Veredito Final</div>
+      <div class="verdict-txt">${renderBullets(r.verdict)}</div>
+      <div class="tags">${tags}</div>
+      <div class="conf-row">
+        <div class="conf-lbl">Confiança</div>
+        <div class="conf-dots">${dots}</div>
+        <div class="conf-note">${confLabel}</div>
+      </div>
+    </div>
+    ${r._cost?`<div class="cost-row"><span class="cost-badge">💰 Custo desta análise: ${r._cost}</span><button class="btn-delete-result" onclick="deleteCurrentResult()">🗑 Excluir análise</button></div>`:'<div style="margin-top:10px;text-align:right"><button class="btn-delete-result" onclick="deleteCurrentResult()">🗑 Excluir análise</button></div>'}
+    ${r.market_summary&&r.market_summary.length?`<div class="market-summary-card">
+      <div class="ms-title">// Todos os Mercados</div>
+      <div class="ms-subtitle">Calculado com os dados da análise · sem custo adicional</div>
+      <div class="ms-section">Tempo Integral (FT)</div>
+      ${r.market_summary.filter(m=>!m.label.includes('HT')&&!m.label.includes('1º')&&!m.label.includes('Palpite')&&m.trend!=='Principal').map(m=>`
+        <div class="ms-item${m.confidence>=4?' ms-highlight':''}">
+          <div class="ms-label">${m.label}</div>
+          <div class="ms-value">${m.value}</div>
+          <div class="ms-trend">${m.trend}</div>
+          <div class="ms-stars">${starsHtml(m.confidence)}</div>
+        </div>`).join('')}
+      <div class="ms-section">Primeiro Tempo (HT)</div>
+      ${r.market_summary.filter(m=>m.label.includes('HT')||m.label.includes('1º')).map(m=>`
+        <div class="ms-item${m.confidence>=4?' ms-highlight':''}">
+          <div class="ms-label">${m.label}</div>
+          <div class="ms-value">${m.value}</div>
+          <div class="ms-trend">${m.trend}</div>
+          <div class="ms-stars">${starsHtml(m.confidence)}</div>
+        </div>`).join('')}
+      <div class="ms-section">🎯 Palpite Principal</div>
+      ${r.market_summary.filter(m=>m.label.includes('Palpite')||m.trend==='Principal').map(m=>`
+        <div class="ms-item ms-highlight">
+          <div class="ms-label">${m.label}</div>
+          <div class="ms-value">${m.value}</div>
+          <div class="ms-trend">${m.trend}</div>
+          <div class="ms-stars">${starsHtml(m.confidence)}</div>
+        </div>`).join('')}
+    </div>`:''}
+    ${r.tip?`<div class="tip-card">
+      <div class="tip-header"><span style="font-size:20px">🎯</span><span class="tip-title">Palpite do Scout</span></div>
+      <div class="tip-market">${r.tip.market}</div>
+      <div class="tip-reason">${r.tip.reasoning}</div>
+      <div class="tip-meta">
+        <span class="tip-conf">Confiança: ${'⭐'.repeat(r.tip.confidence||1)}</span>
+        ${r.tip.ev_note?`<span class="tip-ev">📈 ${r.tip.ev_note}</span>`:''}
+      </div>
+      <div class="tip-disclaimer">⚠️ Palpite gerado por IA para fins comparativos apenas. Não é recomendação de aposta.</div>
+    </div>`:''}
+    <div class="disclaimer"><strong>⚠️ Aviso:</strong> Análise gerada por IA com base em dados históricos. Não é recomendação de apostas. Resultados esportivos são imprevisíveis.</div>
+  `;
+}
+
+// ── BACKTESTING ──
+function openBT() {
+  showScreen('screenBT');
+  renderBT();
+}
+
+function setBTResult(idx, result) {
+  if (!history[idx]) return;
+  history[idx].btResult = result;
+  localStorage.setItem('scout_history', JSON.stringify(history));
+  renderBT();
+  showToast(result === 'win' ? '✅ Green!' : result === 'loss' ? '❌ Red' : '⏳ Pendente');
+}
+
+function renderBT() {
+  const body = document.getElementById('btBody');
+  const items = history.filter(h => h.result?.tip);
+
+  if (!items.length) {
+    body.innerHTML = `<div class="bt-empty"><span style="font-size:40px;display:block;margin-bottom:12px;opacity:.4">📊</span>Nenhuma análise com palpite ainda.<br>Faça uma análise para começar!</div>`;
+    return;
+  }
+
+  // Calc stats
+  const total = items.filter(h => h.btResult && h.btResult !== 'pending').length;
+  const wins  = items.filter(h => h.btResult === 'win').length;
+  const losses= items.filter(h => h.btResult === 'loss').length;
+  const pct   = total > 0 ? Math.round((wins/total)*100) : 0;
+  const pending = items.filter(h => !h.btResult || h.btResult === 'pending').length;
+
+  // Market breakdown
+  const markets = {};
+  items.forEach(h => {
+    if (!h.result?.tip?.market) return;
+    const m = h.result.tip.market;
+    if (!markets[m]) markets[m] = {w:0,l:0};
+    if (h.btResult === 'win') markets[m].w++;
+    if (h.btResult === 'loss') markets[m].l++;
+  });
+
+  // Insights
+  let insights = [];
+  if (total >= 3) {
+    if (pct >= 65) insights.push(`✅ Taxa de acerto acima de 65% — modelo calibrado`);
+    if (pct < 45 && total >= 5) insights.push(`⚠️ Taxa abaixo de 45% — revisar critérios de entrada`);
+    const bestMarket = Object.entries(markets).sort((a,b) => {
+      const pA = a[1].w + a[1].l > 0 ? a[1].w/(a[1].w+a[1].l) : 0;
+      const pB = b[1].w + b[1].l > 0 ? b[1].w/(b[1].w+b[1].l) : 0;
+      return pB - pA;
+    })[0];
+    if (bestMarket) {
+      const tot = bestMarket[1].w + bestMarket[1].l;
+      if (tot > 0) {
+        const p = Math.round((bestMarket[1].w/tot)*100);
+        insights.push(`🎯 Melhor mercado: <strong>${bestMarket[0]}</strong> — ${p}% de acerto (${tot} entradas)`);
+      }
+    }
+  }
+
+  const statColor = pct >= 60 ? 'var(--green)' : pct >= 45 ? 'var(--yellow)' : 'var(--red)';
+
+  const marketRows = Object.entries(markets).map(([name, data]) => {
+    const tot = data.w + data.l;
+    const p = tot > 0 ? Math.round((data.w/tot)*100) : 0;
+    return `<div class="bt-market">
+      <div class="bt-market-name">${name}</div>
+      <div class="bt-bar-wrap"><div class="bt-bar"><div class="bt-bar-fill" style="width:${p}%"></div></div></div>
+      <div class="bt-pct">${tot > 0 ? p+'%' : '—'}</div>
+      <div style="font-size:10px;color:var(--muted);min-width:40px;text-align:right">${data.w}V ${data.l}D</div>
+    </div>`;
+  }).join('');
+
+  const itemRows = [...items].reverse().map((item, i) => {
+    const realIdx = history.indexOf(item);
+    const tip = item.result?.tip;
+    const br = item.btResult;
+    return `<div class="bt-item">
+      <div class="bt-item-hdr">
+        <div class="bt-match">${item.home} × ${item.away}</div>
+        <div class="bt-date">${item.date}</div>
+      </div>
+      <div class="bt-tip">🎯 ${tip?.market || '—'} ${'⭐'.repeat(tip?.confidence||1)}</div>
+      <div class="bt-btns">
+        <div class="bt-btn ${br==='win'?'win':''}" onclick="setBTResult(${realIdx},'win')">✅ GREEN</div>
+        <div class="bt-btn ${br==='loss'?'loss':''}" onclick="setBTResult(${realIdx},'loss')">❌ RED</div>
+        <div class="bt-btn ${(!br||br==='pending')?'void':''}" onclick="setBTResult(${realIdx},'pending')">⏳ PEND.</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="bt-stats-grid">
+      <div class="bt-stat">
+        <div class="bt-stat-val" style="color:${statColor}">${pct}%</div>
+        <div class="bt-stat-lbl">Acerto</div>
+      </div>
+      <div class="bt-stat">
+        <div class="bt-stat-val" style="color:var(--green)">${wins}</div>
+        <div class="bt-stat-lbl">Green ✅</div>
+      </div>
+      <div class="bt-stat">
+        <div class="bt-stat-val" style="color:var(--red)">${losses}</div>
+        <div class="bt-stat-lbl">Red ❌</div>
+      </div>
+    </div>
+    ${pending > 0 ? `<div style="text-align:center;font-size:12px;color:var(--yellow);margin-bottom:12px">⏳ ${pending} resultado(s) pendente(s)</div>` : ''}
+    ${insights.length ? `<div class="bt-insight"><div class="bt-insight-title">// Insights</div>${insights.map(i=>`<div class="bt-insight-line">${i}</div>`).join('')}</div>` : ''}
+    ${Object.keys(markets).length ? `<div class="section-label" style="margin-bottom:10px">Por mercado</div>${marketRows}` : ''}
+    <div class="section-label" style="margin:16px 0 10px">Registrar resultados</div>
+    ${itemRows}
+  `;
+}
+
+</script>
+</body>
+</html>
